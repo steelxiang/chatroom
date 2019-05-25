@@ -6,19 +6,17 @@ package com.xiang.chatroom.web;
  */
 
 import com.alibaba.fastjson.JSONObject;
-import com.fasterxml.jackson.databind.util.JSONPObject;
-import com.xiang.chatroom.config.GetHttpSessionConfigurator;
-import netscape.javascript.JSObject;
+import com.xiang.chatroom.dao.DataBase;
+import com.xiang.chatroom.service.Service;
+import io.swagger.annotations.ApiOperation;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import javax.servlet.ServletContext;
-import javax.servlet.http.HttpSession;
 import javax.websocket.*;
-import javax.websocket.server.PathParam;
 import javax.websocket.server.ServerEndpoint;
 import java.io.IOException;
+import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Set;
 
 /**
@@ -37,22 +35,34 @@ public class MyWebsocket {
     //与某个客户端的连接会话，需要通过它来给客户端发送数据
     private Session session;
 
+    @Autowired
+    private DataBase dataBase;
+
     /**
      * 连接建立成功调用的方法
      * @param session  可选的参数。session为与某个客户端的连接会话，需要通过它来给客户端发送数据
      */
     @OnOpen
-    public void onOpen(Session session) throws IOException {
+    public void onOpen(Session session) {
         this.session = session;
+        String name = null;
+        try {
+            name = session.getRequestParameterMap().get("name").get(0);
+            boolean b = dataBase.queryByName(name);
+            MyWebsocket myWebsocket = webSocketMap.get(name);
+            if(b||null!=myWebsocket){
+                sendMessage("此用户名已被使用");
+                return;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
 
-        String name = session.getRequestParameterMap().get("name").get(0);
-
+            return;
+        }
         webSocketMap.put(name+"",this); //加入map中
         addOnlineCount();           //在线数加1
         //上线通知所有人
         sendMessageToAll(name+  "刚刚上线");
-
-
         //更新列表信息
         refreshList();
 
@@ -66,7 +76,9 @@ public class MyWebsocket {
     public void onClose(){
 
         webSocketMap.remove(this);//从map中删除
-        subOnlineCount();           //在线数减1
+        subOnlineCount();
+        refreshList();
+        //在线数减1
         System.out.println("有一连接关闭！当前在线人数为" + getOnlineCount());
 
     }
@@ -77,18 +89,33 @@ public class MyWebsocket {
      * @param session 可选的参数
      */
     @OnMessage
-    public void onMessage(String message, Session session) throws IOException {
+    public void onMessage(String message, Session session)  {
 
         JSONObject jsonObject = JSONObject.parseObject(message);
-
-        String user = jsonObject.getString("user");
+         if(null==jsonObject){
+             return;
+         }
+        String sendUser = jsonObject.getString("send_user");
+        String receUser = jsonObject.getString("rece_user");
         String mes = jsonObject.getString("message");
+        Timestamp timestamp=new Timestamp(System.currentTimeMillis());
+        try {
+            if(dataBase.queryByName(sendUser)){
+                dataBase.saveDia(sendUser,receUser,mes,timestamp);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
 
+        MyWebsocket item=webSocketMap.get(sendUser);
+        if(null!=item){
 
-
-        //
-        MyWebsocket item=webSocketMap.get(user);
-        item.sendMessage(mes);
+            try {
+                item.sendMessage(mes);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
 
     }
 
@@ -131,12 +158,10 @@ public class MyWebsocket {
 
     public void refreshList() {
 
-       // Object[] objects = webSocketMap.values().toArray();
         Set<String> keySet = webSocketMap.keySet();
         String s = set2String(keySet);
         String mes="{\"count\":\""+webSocketMap.size()+"\",\"list\":\""+s+"\"}";
         webSocketMap.forEach((k,v)->{
-
             try {
                 v.session.getBasicRemote().sendText(mes);
             } catch (IOException e) {
@@ -150,11 +175,16 @@ public class MyWebsocket {
 
     public String set2String(Set<String> set){
         StringBuilder sb=new StringBuilder();
-     for(String s :set){
-         sb=sb.append(s).append(",");
-     }
-        String s = sb.substring(0, sb.length() - 1).toString();
-     return s;
+        String str = null;
+        try {
+            for(String s :set){
+                sb=sb.append(s).append(",");
+            }
+            str = sb.substring(0, sb.length() - 1).toString();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return str;
     }
 
     public static synchronized int getOnlineCount() {
@@ -167,6 +197,9 @@ public class MyWebsocket {
 
     public static synchronized void subOnlineCount() {
         MyWebsocket.onlineCount--;
+        if(MyWebsocket.onlineCount<1){
+            MyWebsocket.onlineCount=0;
+        }
     }
 }
 

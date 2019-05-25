@@ -25,7 +25,8 @@ WebSocket
 
     //判断当前浏览器是否支持WebSocket
     if('WebSocket' in window){
-        websocket = new WebSocket("ws://localhost:8080/websocket"+window.location.search);
+        websocket = new WebSocket("ws://182.61.47.1:8080/websocket"+window.location.search);
+        // websocket = new WebSocket("ws://localhost:8080/websocket"+window.location.search);
     }
     else{
         alert('Not support websocket')
@@ -76,12 +77,6 @@ WebSocket
     }
 
 
-    function regester(){
-        var message = document.getElementById('regester').value;
-
-
-        websocket.send(message);
-    }
 
 </script>
 </html>
