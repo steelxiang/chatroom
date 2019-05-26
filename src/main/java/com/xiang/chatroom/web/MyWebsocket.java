@@ -18,6 +18,7 @@ import javax.websocket.server.ServerEndpoint;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
 import java.util.HashMap;
 import java.util.Set;
 
@@ -53,14 +54,6 @@ public class MyWebsocket {
         String name = null;
         try {
             name = session.getRequestParameterMap().get("name").get(0);
-            boolean b = dataBase.queryByName(name);
-            MyWebsocket myWebsocket = webSocketMap.get(name);
-            if(b||null!=myWebsocket){
-                responseBean.setCode(0);
-                responseBean.setData("此用户名已被使用");
-                sendMessage(responseBean);
-                return;
-            }
         } catch (Exception e) {
             e.printStackTrace();
 
@@ -111,7 +104,7 @@ public class MyWebsocket {
      */
     @OnMessage
     public void onMessage(String message, Session session)  {
-
+        System.out.println("发送消息  "+message);
         JSONObject jsonObject = JSONObject.parseObject(message);
          if(null==jsonObject){
              return;
@@ -129,9 +122,13 @@ public class MyWebsocket {
         }
         ResponseBean responseBean=new ResponseBean();
         responseBean.setCode(0);
-        responseBean.setData(mes);
+        HashMap<String,String> map=new HashMap<>();
+        map.put("time",timeFormat(new Timestamp(System.currentTimeMillis())));
+        map.put("text",mes);
+
+        responseBean.setData(map);
         responseBean.setMessage("消息正文");
-        MyWebsocket item=webSocketMap.get(sendUser);
+        MyWebsocket item=webSocketMap.get(receUser);
         if(null!=item){
 
             try {
@@ -240,6 +237,13 @@ public class MyWebsocket {
 
             MyWebsocket.onlineCount--;
         }
+    }
+
+    private String timeFormat(Timestamp create_time) {
+        SimpleDateFormat sdf=new SimpleDateFormat("yyyy-MM-dd  hh:mm:ss");
+        String format = sdf.format(create_time.getTime());
+        return format;
+
     }
 }
 

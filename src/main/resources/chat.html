@@ -12,7 +12,9 @@ WebSocket
 <br>
 
 <br>
-<input id="user" type="text" placeholder="用户名"/>
+<input id="send_user" type="text" placeholder="发送方"/>
+<br>
+<input id="rece_user" type="text" placeholder="接收方"/>
 <br>
 <button onclick="send()">发送消息</button>
 <button onclick="closeWebSocket()">关闭</button>
@@ -26,7 +28,7 @@ WebSocket
     //判断当前浏览器是否支持WebSocket
     if('WebSocket' in window){
         websocket = new WebSocket("ws://182.61.47.1:8080/websocket"+window.location.search);
-       //  websocket = new WebSocket("ws://localhost:8080/websocket"+window.location.search);
+         //websocket = new WebSocket("ws://localhost:8080/websocket"+window.location.search);
     }
     else{
         alert('Not support websocket')
@@ -71,8 +73,9 @@ WebSocket
     //发送消息
     function send(){
         var message = document.getElementById('text').value;
-        var user = document.getElementById('user').value;
-          var json="{'user':'"+user+"','message':'"+message+"'}";
+        var send = document.getElementById('send_user').value;
+        var rece = document.getElementById('rece_user').value;
+          var json="{'send_user':'"+send+"','rece_user':'"+rece+"','message':'"+message+"'}";
         websocket.send(json);
     }
 

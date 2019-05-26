@@ -17,6 +17,7 @@ import java.util.List;
  * @date 2019/5/25
  */
 @RestController
+@RequestMapping("/api")
 @CrossOrigin(methods = {RequestMethod.GET, RequestMethod.POST}, origins = "*")
 public class HomeController {
 

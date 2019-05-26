@@ -23,7 +23,7 @@ public class DataBase {
         String database = "chat";
         String username = "root";
         String password = "1357";
-        String url = "jdbc:mysql://" + host_port + "/" + database + "?serverTimezone=GMT%2B8&useSSL=false";
+        String url = "jdbc:mysql://" + host_port + "/" + database + "?serverTimezone=GMT%2B8&useSSL=false&useUnicode=true&characterEncoding=UTF-8";
 
         try {
             Class.forName("com.mysql.jdbc.Driver");
@@ -39,16 +39,41 @@ public class DataBase {
 
         Connection conn = getConn();
         Statement statement = conn.createStatement();
-        String sql = "select * from user where name=\"" + user+"\"";
+        String sql = "select * from user where name=\"" + user + "\"";
         ResultSet resultSet = statement.executeQuery(sql);
         if (resultSet.next()) {
+            conn.close();
             return true;
 
         } else {
+            conn.close();
             return false;
         }
 
     }
+
+
+    public boolean queryPassword(String user, String pass) throws SQLException {
+
+        Connection conn = getConn();
+        Statement statement = conn.createStatement();
+        String sql = "select password from user where name=\"" + user + "\"";
+        ResultSet resultSet = statement.executeQuery(sql);
+        if (resultSet.next()) {
+            String password = resultSet.getString("password");
+            if (pass.equals(password)) {
+
+                conn.close();
+                return true;
+            }
+
+        }
+        conn.close();
+        return false;
+
+
+    }
+
 
     public boolean insert(String user, String password) throws SQLException {
 
@@ -62,24 +87,25 @@ public class DataBase {
         return execute;
     }
 
-    public boolean saveDia(String sendUser, String receUser, String mes,Timestamp timestamp) throws SQLException {
+    public boolean saveDia(String sendUser, String receUser, String mes, Timestamp timestamp) throws SQLException {
         Connection conn = getConn();
         Statement statement = conn.createStatement();
-        String sql="insert into dialogue (send_name,rece_name,text,create_time) values (\"" + sendUser + "\" ,\"" + receUser + "\",\""+mes+"\",\""+timestamp+"\")";
+        String sql = "insert into dialogue (send_name,rece_name,text,create_time) values (\"" + sendUser + "\" ,\"" + receUser + "\",\"" + mes + "\",\"" + timestamp + "\")";
         boolean execute = statement.execute(sql);
+        conn.close();
         return execute;
     }
 
     public List<Dialogue> queryDiaByUser(String send_user, String rece_user) throws SQLException {
-        ArrayList<Dialogue> list=new ArrayList<>();
+        ArrayList<Dialogue> list = new ArrayList<>();
         Connection conn = getConn();
         Statement statement = conn.createStatement();
-        String sql="select * from dialogue where send_name=\""+send_user +"\" and rece_name=\""+rece_user +"\" order by create_time DESC ";
+        String sql = "select * from dialogue where send_name=\"" + send_user + "\" and rece_name=\"" + rece_user + "\" order by create_time DESC ";
         ResultSet resultSet = statement.executeQuery(sql);
-        while (resultSet.next()){
+        while (resultSet.next()) {
             String text = resultSet.getString("text");
             Timestamp create_time = resultSet.getTimestamp("create_time");
-            Dialogue dialogue=new Dialogue();
+            Dialogue dialogue = new Dialogue();
             dialogue.setReceUser(rece_user);
             dialogue.setSendUser(send_user);
             dialogue.setText(text);
@@ -88,12 +114,12 @@ public class DataBase {
 
         }
 
-
+        conn.close();
         return list;
     }
 
     private String timeFormat(Timestamp create_time) {
-        SimpleDateFormat sdf=new SimpleDateFormat("yyyy-MM-dd  hh:mm:ss");
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd  hh:mm:ss");
         String format = sdf.format(create_time.getTime());
         return format;
 

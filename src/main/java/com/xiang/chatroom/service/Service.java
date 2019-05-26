@@ -33,7 +33,14 @@ public class Service {
             boolean f = dataBase.queryByName(user);
             if (f) {
                 repponse.setCode(1);
-                repponse.setMessage("登录成功");
+                boolean b = dataBase.queryPassword(user, password);
+                if(b){
+
+                    repponse.setMessage("登录成功");
+                }else {
+                    repponse.setMessage("密码错误");
+                }
+
                 return repponse;
             } else {
                 boolean b = dataBase.insert(user, password);
