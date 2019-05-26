@@ -3,6 +3,7 @@ package com.xiang.chatroom.service;
 import com.xiang.chatroom.dao.Dialogue;
 import com.xiang.chatroom.dao.ResponseBean;
 import com.xiang.chatroom.dao.DataBase;
+import com.xiang.chatroom.web.MyWebsocket;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
 
@@ -55,5 +56,24 @@ public class Service {
     public List<Dialogue> receord(String send_user, String rece_user) throws SQLException {
 
        return dataBase.queryDiaByUser(send_user,rece_user);
+    }
+
+    public ResponseBean guestLogin(String name) {
+        ResponseBean responseBean=new ResponseBean();
+        MyWebsocket myWebsocket = MyWebsocket.webSocketMap.get(name);
+        boolean b = false;
+        try {
+            b = dataBase.queryByName(name);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        if(b||null!=myWebsocket){
+            responseBean.setCode(0);
+            responseBean.setData("用户名已存在");
+        }else {
+            responseBean.setCode(1);
+            responseBean.setData("用户名可以使用");
+        }
+        return responseBean;
     }
 }

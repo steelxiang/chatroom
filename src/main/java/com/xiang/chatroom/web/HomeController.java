@@ -31,9 +31,6 @@ public class HomeController {
 
         ResponseBean repponse = new ResponseBean();
 
-       // String user = request.getParameter("user");
-      //  String password = request.getParameter("password");
-
         try {
             repponse = service.login(user, password);
         } catch (Exception e) {
@@ -45,17 +42,46 @@ public class HomeController {
         return repponse;
     }
 
+    @GetMapping ("/guestLogin")
+    @ApiOperation(value = "游客登录接口", notes = "游客登录接口")
+    public ResponseBean guestLogin(@RequestParam(value = "user") String user) {
+
+
+        ResponseBean repponse = new ResponseBean();
+        repponse.setCode(1);
+
+        try {
+            repponse = service.guestLogin(user);
+        } catch (Exception e) {
+            e.printStackTrace();
+            repponse.setCode(0);
+            repponse.setMessage("内部错误");
+        }
+
+        return repponse;
+    }
+
+
+
+
+
+
+
     @GetMapping("/getReceord")
     @ApiOperation(value = "查看聊天记录", notes = "返回所有记录")
-    public List<Dialogue> receord(@RequestParam("send_user") String send_user,@RequestParam("rece_user") String rece_user) {
-       // String send_user = request.getParameter("send_user");
-       // String rece_user = request.getParameter("rece_user");
-        List<Dialogue> list = null;
+    public ResponseBean receord(@RequestParam("send_user") String send_user,@RequestParam("rece_user") String rece_user) {
+
+        ResponseBean repponse = new ResponseBean();
+        repponse.setCode(1);
+        repponse.setMessage("success");
         try {
-            list = service.receord(send_user, rece_user);
+            List<Dialogue> receord = service.receord(send_user, rece_user);
+            repponse.setData(receord);
         } catch (SQLException e) {
             e.printStackTrace();
+            repponse.setCode(0);
+            repponse.setMessage("fail");
         }
-        return list;
+        return repponse;
     }
 }

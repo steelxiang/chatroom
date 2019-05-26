@@ -10,8 +10,7 @@ import org.springframework.context.annotation.Bean;
 @SpringBootApplication(exclude = DataSourceAutoConfiguration.class)
 public class ChatroomApplication {
 
-    @Autowired
-    private RequestListener requestListener;
+
 
 
 	public static void main(String[] args) {
@@ -24,11 +23,6 @@ public class ChatroomApplication {
 
 
 
-    @Bean
-    public ServletListenerRegistrationBean<RequestListener> servletListenerRegistrationBean() {
-        ServletListenerRegistrationBean<RequestListener> servletListenerRegistrationBean = new ServletListenerRegistrationBean<>();
-        servletListenerRegistrationBean.setListener(requestListener);
-        return servletListenerRegistrationBean;
-    }
+
 
 }
