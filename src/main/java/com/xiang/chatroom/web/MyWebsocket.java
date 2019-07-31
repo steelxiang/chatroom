@@ -125,6 +125,7 @@ public class MyWebsocket {
         HashMap<String,String> map=new HashMap<>();
         map.put("time",timeFormat(new Timestamp(System.currentTimeMillis())));
         map.put("text",mes);
+        map.put("send_user",sendUser);
 
         responseBean.setData(map);
         responseBean.setMessage("消息正文");
@@ -132,6 +133,8 @@ public class MyWebsocket {
         if(null!=item){
 
             try {
+                //同时发给 两个
+                this.sendMessage(responseBean);
                 item.sendMessage(responseBean);
             } catch (IOException e) {
                 e.printStackTrace();

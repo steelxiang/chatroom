@@ -84,7 +84,7 @@ public class DataBase {
         boolean execute = statement.execute(sql);
 
         conn.close();
-        return execute;
+        return !execute;
     }
 
     public boolean saveDia(String sendUser, String receUser, String mes, Timestamp timestamp) throws SQLException {
@@ -100,7 +100,7 @@ public class DataBase {
         ArrayList<Dialogue> list = new ArrayList<>();
         Connection conn = getConn();
         Statement statement = conn.createStatement();
-        String sql = "select * from dialogue where send_name=\"" + send_user + "\" and rece_name=\"" + rece_user + "\" order by create_time DESC ";
+        String sql = "select * from dialogue where send_name=\"" + send_user + "\" and rece_name=\"" + rece_user + "\" order by create_time DESC limit 10";
         ResultSet resultSet = statement.executeQuery(sql);
         while (resultSet.next()) {
             String text = resultSet.getString("text");
